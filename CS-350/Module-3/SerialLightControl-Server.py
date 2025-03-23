@@ -16,6 +16,9 @@
 #------------------------------------------------------------------
 #    1          Initial Development
 #------------------------------------------------------------------
+#    2          Added logic for ON, OFF, 
+#               and clean EXIT functionality
+#------------------------------------------------------------------
 
 # This imports the Python serial package to handle communications over the
 # Raspberry Pi's serial port. 
@@ -74,6 +77,7 @@ while repeat:
                 # default North American English character set) and
                 # normalizes the input to lower case.
                 command = ((ser.readline()).decode("utf-8")).lower()
+                
 
                 # This is a state-machine implementation in Python.
                 # We match on the value of a variable with individual 
@@ -91,36 +95,21 @@ while repeat:
                                 # Set GPIO line 18 to False - disable output voltage
                                 # This turns off voltage output to whatever may be 
                                 # connected to GPIO line 18.
-                        
-                                ##
-                                ## TODO: Add one line of code to turn off the 
-                                ## LED and remove the TODO comment block when 
-                                ## complete
-                                ##
-        
+                                GPIO.output(18, False)
+
                         case "on":
                                 # Set GPIO line 18 to True - enable output voltage
                                 # This turns on voltage output to whatever may be 
                                 # connected to GPIO line 18.
-                        
-                                ##
-                                ## TODO: Add one line of code to turn on the 
-                                ## LED and remove the TODO comment block when 
-                                ## complete
-                                ##
+                                GPIO.output(18, True)
 
                         case "exit" | "quit":
                                 # Cleanup the GPIO pins used in this application and 
                                 # exit cleanly
+                                pwm18.stop()
+                                GPIO.cleanup()
+                                repeat = False
 
-                                ##
-                                ## TODO: Add three lines of code. One to make sure the
-                                ## LED is OFF, one to perform the cleanup of used GPIO
-                                ## Lines, one to end the loop - DO NOT USE A BREAK 
-                                ## STATEMENT - and remove the TODO comment block when 
-                                ## complete
-                                ##         
-                                               
                         case _:
                                 # No valid commands in the input so do nothing
                                 pass
@@ -134,5 +123,3 @@ while repeat:
                 repeat = False
 
 
-
-                

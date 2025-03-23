@@ -25,7 +25,7 @@ import time
 dutyCycle = 10
 
 # This global variabl defines the sleep time between duty cycle modifications
-sleepTime = 0.05
+sleepTime = 0.1
 
 # Setup the GPIO interface
 #
@@ -47,7 +47,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(18, GPIO.OUT)
 
 # Configure a PWM instance on GPIO line 18, with a frequency of 60Hz
-pwm18 = GPIO.PWM(18, 60)
+pwm18 = GPIO.PWM(18, 1)
 
 # Start the PWM instance on GPIO line 18 with 0% duty cycle
 pwm18.start(0)
@@ -59,19 +59,9 @@ pwm18.start(0)
 repeat = True
 while repeat:
     try:
-        # Loop from 0 to 100 in increments of 5, and update the dutyCycle
-        # accordingly, pausing 1/10th of a second between each update
-        while dutyCycle < 60:
-            dutyCycle = dutyCycle + 5
-            pwm18.ChangeDutyCycle(dutyCycle)
-            time.sleep(sleepTime)
 
-        # Loop from 100 to 0 in increments of -5, and update the dutyCycle
-        # accordingly, pausing 1/10th of a second between each update
-        while dutyCycle > 0:
-            dutyCycle = dutyCycle - 5
-            pwm18.ChangeDutyCycle(dutyCycle)
-            time.sleep(sleepTime)
+        pwm18.ChangeDutyCycle(dutyCycle)
+        time.sleep(sleepTime)
 
         ##
         ## TODO: Add a for loop that changes the duty cycle for the LED
