@@ -251,7 +251,7 @@ class CWMachine(StateMachine):
         ## LED for 500ms one time. Remove this TODO comment block when
         ## complete.
 #----------------------------------------------------------------------
-
+        self.redLight.on(0.5)
 #----------------------------------------------------------------------
 
         if(DEBUG):
@@ -269,7 +269,7 @@ class CWMachine(StateMachine):
         ## Red LED is turned off. Remove this TODO comment block when
         ## complete.
 #----------------------------------------------------------------------
-
+        self.redLight.off()
 #----------------------------------------------------------------------
 
     ##
@@ -284,7 +284,7 @@ class CWMachine(StateMachine):
         ## LED for 1500ms one time. Remove this TODO comment block when
         ## complete.
 #----------------------------------------------------------------------
-
+        self.blueLight.on(1.5)
 #----------------------------------------------------------------------
 
         if(DEBUG):
@@ -302,7 +302,7 @@ class CWMachine(StateMachine):
         ## Blue LED is turned off. Remove this TODO comment block when
         ## complete.
 #----------------------------------------------------------------------
-
+        self.redLight.off()
 #----------------------------------------------------------------------
 
     ##
@@ -316,7 +316,7 @@ class CWMachine(StateMachine):
         ## of the next operation for 250ms. Remove this TODO comment block when
         ## complete.
 #----------------------------------------------------------------------
-
+        sleep(0.25)
 #----------------------------------------------------------------------
 
         if(DEBUG):
@@ -340,7 +340,7 @@ class CWMachine(StateMachine):
         ## of the next operation for 750ms. Remove this TODO comment block when
         ## complete.
 #----------------------------------------------------------------------
-
+        sleep(0.75)
 #----------------------------------------------------------------------
 
         if(DEBUG):
@@ -364,7 +364,7 @@ class CWMachine(StateMachine):
         ## of the next operation for 3000ms. Remove this TODO comment block 
         ## when complete.
 #----------------------------------------------------------------------
-
+        sleep(3)
 #----------------------------------------------------------------------
 
         if(DEBUG):
@@ -388,7 +388,10 @@ class CWMachine(StateMachine):
         ## OK. Remove this TODO comment block when complete. You should be
         ## able to accomplish this in fewer than 6 lines of code.
 #----------------------------------------------------------------------
-
+        if activeMessage == message1:
+            activeMessage = message2
+        else if activeMessage = message2:
+            activeMessage = message1 
 #----------------------------------------------------------------------
 
         if(DEBUG):
@@ -454,7 +457,7 @@ class CWMachine(StateMachine):
                         ## You should be able to accomplish this in fewer 
                         ## than 10 lines of code.
 #----------------------------------------------------------------------
-
+                        
 #----------------------------------------------------------------------
 
                         # If we are still sending process a dotDashPause event
