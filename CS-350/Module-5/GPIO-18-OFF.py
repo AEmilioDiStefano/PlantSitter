@@ -1,8 +1,7 @@
 #
-# GPIO-23-ON.py - This is a Python script designed to activate
-# GPIO line 23, and enable ouput voltage on the pin. When 
-# combined with GPIO-23-OFF.py, this script can be used to manually
-# test a circuit configured to use GPIO line 23.
+# GPIO-23-OFF.py - This is a Python script designed to shut down
+# GPIO line 23 if it was still set to True when a test application
+# exited.
 #
 #------------------------------------------------------------------
 # Change History
@@ -33,9 +32,9 @@ import RPi.GPIO as GPIO
 #    pin and the LED will light up. 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(23, GPIO.OUT)
+GPIO.setup(18, GPIO.OUT)
 
-# Set GPIO line 23 to True - enable output voltage
-# This turns on voltage output to whatever may be connected to 
+# Set GPIO line 23 to False - disable output voltage
+# This turns off voltage output to whatever may be connected to 
 # GPIO line 23.
-GPIO.output(23, True)
+GPIO.output(18, False)

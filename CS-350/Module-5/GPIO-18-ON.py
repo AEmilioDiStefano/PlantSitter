@@ -33,9 +33,9 @@ import RPi.GPIO as GPIO
 #    pin and the LED will light up. 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(23, GPIO.OUT)
+GPIO.setup(18, GPIO.OUT)
 
 # Set GPIO line 23 to True - enable output voltage
 # This turns on voltage output to whatever may be connected to 
 # GPIO line 23.
-GPIO.output(23, True)
+GPIO.output(18, True)

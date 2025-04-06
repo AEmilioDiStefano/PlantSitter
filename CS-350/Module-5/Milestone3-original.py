@@ -1,4 +1,3 @@
-
 #
 # Milestone3.py - This is the Python code template used to 
 # setup the structure for Milestone 3. In this milestone, you need
@@ -250,9 +249,6 @@ class CWMachine(StateMachine):
         ## TODO: Add the single line of code necessary to blink the Red
         ## LED for 500ms one time. Remove this TODO comment block when
         ## complete.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
         if(DEBUG):
             print("* Changing state to red - dot")
@@ -268,9 +264,6 @@ class CWMachine(StateMachine):
         ## TODO: Add the single line of code necessary to ensure that the
         ## Red LED is turned off. Remove this TODO comment block when
         ## complete.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
     ##
     ## on_enter_dash - Action performed when the state machine transitions
@@ -283,9 +276,6 @@ class CWMachine(StateMachine):
         ## TODO: Add the single line of code necessary to blink the Blue
         ## LED for 1500ms one time. Remove this TODO comment block when
         ## complete.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
         if(DEBUG):
             print("* Changing state to blue - dash")
@@ -301,9 +291,7 @@ class CWMachine(StateMachine):
         ## TODO: Add the single line of code necessary to ensure that the
         ## Blue LED is turned off. Remove this TODO comment block when
         ## complete.
-#----------------------------------------------------------------------
 
-#----------------------------------------------------------------------
 
     ##
     ## on_enter_dotDashPause - Action performed when the state machine 
@@ -315,9 +303,6 @@ class CWMachine(StateMachine):
         ## TODO: Add the single line of code necessary to pause execution
         ## of the next operation for 250ms. Remove this TODO comment block when
         ## complete.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
         if(DEBUG):
             print("* Pausing Between Dots/Dashes - 250ms")
@@ -339,9 +324,6 @@ class CWMachine(StateMachine):
         ## TODO: Add the single line of code necessary to pause execution
         ## of the next operation for 750ms. Remove this TODO comment block when
         ## complete.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
         if(DEBUG):
             print("* Pausing Between Letters - 750ms")
@@ -363,9 +345,6 @@ class CWMachine(StateMachine):
         ## TODO: Add the single line of code necessary to pause execution
         ## of the next operation for 3000ms. Remove this TODO comment block 
         ## when complete.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
         if(DEBUG):
             print("* Pausing Between Words - 3000ms")
@@ -387,9 +366,6 @@ class CWMachine(StateMachine):
         ## between the primary message of 'SOS' and the backup message of
         ## OK. Remove this TODO comment block when complete. You should be
         ## able to accomplish this in fewer than 6 lines of code.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
         if(DEBUG):
             print(f"* Toggling active message to: {self.activeMessage} ")
@@ -431,7 +407,7 @@ class CWMachine(StateMachine):
             lenWords = len(wordList)
             wordsCounter = 1
             for word in wordList:
-
+            
                 ## Setup counter to determine time buffer after letters
                 lenWord = len(word)
                 wordCounter = 1
@@ -453,9 +429,6 @@ class CWMachine(StateMachine):
                         ## Remove this TODO comment block when complete. 
                         ## You should be able to accomplish this in fewer 
                         ## than 10 lines of code.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
                         # If we are still sending process a dotDashPause event
 
@@ -466,9 +439,6 @@ class CWMachine(StateMachine):
                         ## Remove this TODO comment block when complete. 
                         ## You should be able to accomplish this in fewer 
                         ## than 6 lines of code.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
                     # If we are still sending process a letterPause event
 
@@ -479,9 +449,6 @@ class CWMachine(StateMachine):
                     ## Remove this TODO comment block when complete. 
                     ## You should be able to accomplish this in fewer 
                     ## than 6 lines of code.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
                 # If we are still sending process a wordPause event
 
@@ -492,9 +459,6 @@ class CWMachine(StateMachine):
                 ## Remove this TODO comment block when complete. 
                 ## You should be able to accomplish this in fewer 
                 ## than 6 lines of code.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
         ## Cleanup the display i.e. clear it
         self.screen.cleanupDisplay()
@@ -525,9 +489,6 @@ greenButton = Button(24)
 ## Remove this TODO comment block when complete. 
 ## You should be able to accomplish this in a single
 ## line of code.
-#----------------------------------------------------------------------
-
-#----------------------------------------------------------------------
 
 ##
 ## Setup loop variable
