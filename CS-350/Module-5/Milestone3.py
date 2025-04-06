@@ -462,7 +462,7 @@ class CWMachine(StateMachine):
                             self.current_state.id = dash
                             on_exit_dash()
                         elif x == ".":
-                            on_exit_dot()
+                            on_enter_dot()
                             self.current_state.id = dot
                             on_exit_dot()
 #----------------------------------------------------------------------
