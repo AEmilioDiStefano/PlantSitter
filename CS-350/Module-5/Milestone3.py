@@ -477,7 +477,11 @@ class CWMachine(StateMachine):
                         ## You should be able to accomplish this in fewer 
                         ## than 6 lines of code.
 #----------------------------------------------------------------------
-
+                        else:
+                            on_enter_dotDashPause()
+                            self.current_state.id = dotDashPause
+                            on_exit_dotDashPause()
+                            morseCounter = morseCounter + 1
 #----------------------------------------------------------------------
 
                     # If we are still sending process a letterPause event
@@ -490,7 +494,11 @@ class CWMachine(StateMachine):
                     ## You should be able to accomplish this in fewer 
                     ## than 6 lines of code.
 #----------------------------------------------------------------------
-
+                    if char == " ":
+                        on_enter_letterPause()
+                        self.current_state_id = letterPause
+                        on_exit_letterPause()
+                        wordCounter = wordCounter + 1
 #----------------------------------------------------------------------
 
                 # If we are still sending process a wordPause event
@@ -503,7 +511,11 @@ class CWMachine(StateMachine):
                 ## You should be able to accomplish this in fewer 
                 ## than 6 lines of code.
 #----------------------------------------------------------------------
-
+                if word != None:
+                    on_enter_wordPause()
+                    self.current_state_id = wordPause
+                    on_exit_wordPause()
+                    wordsCounter = wordsCounter + 1
 #----------------------------------------------------------------------
 
         ## Cleanup the display i.e. clear it
@@ -536,7 +548,7 @@ greenButton = Button(24)
 ## You should be able to accomplish this in a single
 ## line of code.
 #----------------------------------------------------------------------
-
+greenButton.when_pressed = ManagedDisplay.processButton
 #----------------------------------------------------------------------
 
 ##
