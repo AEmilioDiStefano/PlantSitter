@@ -390,7 +390,7 @@ class CWMachine(StateMachine):
 #----------------------------------------------------------------------
         if activeMessage == message1:
             activeMessage = message2
-        else if activeMessage = message2:
+        elif activeMessage == message2:
             activeMessage = message1 
 #----------------------------------------------------------------------
 
@@ -461,7 +461,7 @@ class CWMachine(StateMachine):
                             on_enter_dash()
                             self.current_state.id = dash
                             on_exit_dash()
-                        else if x == ".":
+                        elif x == ".":
                             on_exit_dot()
                             self.current_state.id = dot
                             on_exit_dot()
@@ -548,7 +548,7 @@ greenButton = Button(24)
 ## You should be able to accomplish this in a single
 ## line of code.
 #----------------------------------------------------------------------
-greenButton.when_pressed = ManagedDisplay.processButton
+greenButton.when_pressed = CWMachine.processButton
 #----------------------------------------------------------------------
 
 ##
