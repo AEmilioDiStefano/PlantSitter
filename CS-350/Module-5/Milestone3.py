@@ -457,7 +457,14 @@ class CWMachine(StateMachine):
                         ## You should be able to accomplish this in fewer 
                         ## than 10 lines of code.
 #----------------------------------------------------------------------
-                        
+                        if x == "-":
+                            on_enter_dash()
+                            self.current_state.id = dash
+                            on_exit_dash()
+                        else if x == ".":
+                            on_exit_dot()
+                            self.current_state.id = dot
+                            on_exit_dot()
 #----------------------------------------------------------------------
 
                         # If we are still sending process a dotDashPause event
