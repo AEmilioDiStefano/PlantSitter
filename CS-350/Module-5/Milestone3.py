@@ -388,10 +388,12 @@ class CWMachine(StateMachine):
         ## OK. Remove this TODO comment block when complete. You should be
         ## able to accomplish this in fewer than 6 lines of code.
 #----------------------------------------------------------------------
-        if activeMessage == message1:
-            activeMessage = message2
-        elif activeMessage == message2:
-            activeMessage = message1 
+        if (self.activeMessage == self.message1):
+            self.activeMessage = self.message2
+            self.run()
+        else:
+            self.activeMessage = self.message1
+            self.run() 
 #----------------------------------------------------------------------
 
         if(DEBUG):
@@ -458,13 +460,9 @@ class CWMachine(StateMachine):
                         ## than 10 lines of code.
 #----------------------------------------------------------------------
                         if x == "-":
-                            on_enter_dash()
-                            self.current_state.id = dash
-                            on_exit_dash()
+                            return CWMachine.dash
                         elif x == ".":
-                            on_enter_dot()
-                            self.current_state.id = dot
-                            on_exit_dot()
+                            return CWMachine.dot
 #----------------------------------------------------------------------
 
                         # If we are still sending process a dotDashPause event
@@ -478,9 +476,7 @@ class CWMachine(StateMachine):
                         ## than 6 lines of code.
 #----------------------------------------------------------------------
                         else:
-                            on_enter_dotDashPause()
-                            self.current_state.id = dotDashPause
-                            on_exit_dotDashPause()
+                            return CWMachine.dotDashPause
                             morseCounter = morseCounter + 1
 #----------------------------------------------------------------------
 
@@ -495,9 +491,7 @@ class CWMachine(StateMachine):
                     ## than 6 lines of code.
 #----------------------------------------------------------------------
                     if char == " ":
-                        on_enter_letterPause()
-                        self.current_state_id = letterPause
-                        on_exit_letterPause()
+                        return letterPause
                         wordCounter = wordCounter + 1
 #----------------------------------------------------------------------
 
@@ -512,9 +506,7 @@ class CWMachine(StateMachine):
                 ## than 6 lines of code.
 #----------------------------------------------------------------------
                 if word != None:
-                    on_enter_wordPause()
-                    self.current_state_id = wordPause
-                    on_exit_wordPause()
+                    return wordPause
                     wordsCounter = wordsCounter + 1
 #----------------------------------------------------------------------
 
@@ -548,7 +540,7 @@ greenButton = Button(24)
 ## You should be able to accomplish this in a single
 ## line of code.
 #----------------------------------------------------------------------
-greenButton.when_pressed = CWMachine.processButton
+greenButton.when_pressed = cwMachine.processButton
 #----------------------------------------------------------------------
 
 ##

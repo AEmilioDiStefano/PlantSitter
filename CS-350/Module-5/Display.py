@@ -89,8 +89,8 @@ while repeat:
         ## first line of the display to represent the date
         ## and time. Month, Day, Hour, Minute, Second
         ## lcd_line_1 = datetime.now().strftime('%b %d  %H:%M:%S\n')
-        lcd_line_1 = 'Help! Im trapped \n'
-        lcd_line_2 = 'in the machine!'
+        lcd_line_1 = 'Thank you \n'
+        lcd_line_2 = 'Mom!'
 
         # combine both lines into one update to the display
         lcd.message = lcd_line_1 + lcd_line_2
