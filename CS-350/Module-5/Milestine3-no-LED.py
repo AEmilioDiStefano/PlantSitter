@@ -251,7 +251,7 @@ class CWMachine(StateMachine):
         ## LED for 500ms one time. Remove this TODO comment block when
         ## complete.
 #----------------------------------------------------------------------
-        self.redLight.blink(on_time=0.5, off_time=0, n=1)
+        self.redLight.on(0.5)
 #----------------------------------------------------------------------
 
         if(DEBUG):
@@ -284,7 +284,7 @@ class CWMachine(StateMachine):
         ## LED for 1500ms one time. Remove this TODO comment block when
         ## complete.
 #----------------------------------------------------------------------
-        self.blueLight.blink(on_time=1.5, off_time=0, n=1)
+        self.blueLight.on(1.5)
 #----------------------------------------------------------------------
 
         if(DEBUG):
@@ -460,13 +460,9 @@ class CWMachine(StateMachine):
                         ## than 10 lines of code.
 #----------------------------------------------------------------------
                         if x == "-":
-                            self.on_enter_dash()
-                            self.doDash()
-                            self.on_exit_dash()
+                            return CWMachine.dash
                         elif x == ".":
-                            self.on_enter_dot()
-                            self.doDot()
-                            self.on_exit_dot()
+                            return CWMachine.dot
 #----------------------------------------------------------------------
 
                         # If we are still sending process a dotDashPause event
@@ -480,9 +476,7 @@ class CWMachine(StateMachine):
                         ## than 6 lines of code.
 #----------------------------------------------------------------------
                         else:
-                            self.on_enter_dotDashPause()
-                            self.doDDP()
-                            self.on_exit_dotDashPause()
+                            return CWMachine.dotDashPause
                             morseCounter = morseCounter + 1
 #----------------------------------------------------------------------
 
@@ -497,9 +491,7 @@ class CWMachine(StateMachine):
                     ## than 6 lines of code.
 #----------------------------------------------------------------------
                     if char == " ":
-                        self.on_enter_letterPause()
-                        self.doLP()
-                        self.on_exit_letterPause()
+                        return letterPause
                         wordCounter = wordCounter + 1
 #----------------------------------------------------------------------
 
@@ -514,9 +506,7 @@ class CWMachine(StateMachine):
                 ## than 6 lines of code.
 #----------------------------------------------------------------------
                 if word != None:
-                    self.on_enter_wordPause()
-                    self.doWP()
-                    self.on_exit_wordPause()
+                    return wordPause
                     wordsCounter = wordsCounter + 1
 #----------------------------------------------------------------------
 
