@@ -365,8 +365,8 @@ class TemperatureMachine(StateMachine):
             # if the temperature is less than the 
             # maximum set point,
             if (tsm.getFahrenheit() < self.maxSetPoint):
-                # then switch to heat and turn on 
-                # only the red light.
+                # then turn on only 
+                # the blue light.
                 redLight.off()
                 blueLight.off()
 
@@ -376,8 +376,8 @@ class TemperatureMachine(StateMachine):
             # if the temperature is greater than 
             # the minimum set point,
             if (tsm.getFahrenheit() > self.minSetPoint):
-                # then switch to cool snd turn on 
-                # only the blue light.
+                # then turn on only
+                # the red light.
                 blueLight.off()
                 redLight.on()
 
