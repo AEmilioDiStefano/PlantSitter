@@ -249,14 +249,6 @@ class TemperatureMachine(StateMachine):
     setPoint = 72
 
     ##
-    ## These variables enable a safety feature which 
-    ## sets a maximum and minimum target temperature
-    ##
-    maxSetPoint = 95
-    minSetPoint = 60
-
-
-    ##
     ## cycle - event that provides the state machine behavior
     ## of transitioning between the three states of our 
     ## thermostat
@@ -273,18 +265,6 @@ class TemperatureMachine(StateMachine):
 
     cycle_cool_to_heat = (
         cool.to(heat)
-    )
-
-    cycle_cool_to_off = (
-        cool.to(off)
-    )
-
-    cycle_off_to_heat = (
-        off.to(heat)
-    )
-
-    cycle_off_to_cool = (
-        off.to(cool)
     )
 
     ##
@@ -310,6 +290,9 @@ class TemperatureMachine(StateMachine):
         ## the heat state.
         redLight.off()
 
+        if(DEBUG):
+            print("* Exiting cool state")
+
     ##
     ## on_enter_cool - Action performed when the state machine transitions
     ## into the 'cool' state
@@ -332,6 +315,9 @@ class TemperatureMachine(StateMachine):
         ## Turn off the blue indicator light upon exiting 
         ## the 'cool' state.
         blueLight.off()
+
+        if(DEBUG):
+            print("* Exiting cool state")
 
     ##
     ## on_enter_off - Action performed when the state machine transitions
@@ -359,35 +345,6 @@ class TemperatureMachine(StateMachine):
         ## Change the state of the thermostat.        
         self.send("cycle")
 
-        # If the system is off when
-        # the button is pressed, 
-        if (self.current_state.id == 'off'):
-            # if the temperature is less than the 
-            # maximum set point,
-            if (tsm.getFahrenheit() < self.maxSetPoint):
-                # then switch to heat and turn on 
-                # only the red light.
-                redLight.off()
-                blueLight.off()
-
-        # If the system is heating 
-        # when the button is pressed,
-        if (self.current_state.id == 'heat'):
-            # if the temperature is greater than 
-            # the minimum set point,
-            if (tsm.getFahrenheit() > self.minSetPoint):
-                # then switch to cool snd turn on 
-                # only the blue light.
-                blueLight.off()
-                redLight.on()
-
-        # If the system is cooling 
-        # when the button is pressed,
-        if (self.current_state.id == 'cool'):
-            # then switch to off and turn the lights off.
-                redLight.off()
-                blueLight.on()                
-
     ##
     ## processTempIncButton - Utility method used to update the 
     ## setPoint for the temperature. This will increase the setPoint
@@ -395,17 +352,14 @@ class TemperatureMachine(StateMachine):
     ## handler for our second button
     ##
     def processTempIncButton(self):
-
         if(DEBUG):
             print("Increasing Set Point")
 
         ##
         ## Update the setPoint of the thermostat and the status lights
         ## within the circuit.
-        # If the setPoint is less than the maximum set point, 
-        if (self.setPoint < self.maxSetPoint):
-            # then increment the setPoint by 1
-            self.setPoint = self.setPoint + 1
+        
+        self.setPoint = self.setPoint + 1
 
     ##
     ## processTempDecButton - Utility method used to update the 
@@ -413,19 +367,15 @@ class TemperatureMachine(StateMachine):
     ## by a single degree. This is triggered by the button_pressed event
     ## handler for our third button
     ##
-
     def processTempDecButton(self):
-
         if(DEBUG):
             print("Decreasing Set Point")
 
         ##
         ## Update the setPoint of the thermostat and the status lights
         ## within the circuit.
-        # If the setPoint is greater than the minimum set point,
-        if (self.setPoint > self.minSetPoint):
-            # then decrease the set point by 1
-            self.setPoint = self.setPoint - 1
+        
+        self.setPoint = self.setPoint - 1
 
     ##
     ## updateLights - Utility method to update the LED indicators on the 
@@ -445,6 +395,17 @@ class TemperatureMachine(StateMachine):
 
         # Determine visual identifiers
 
+########## TODO ########## TODO ########## TODO ########## TODO ##########
+## TODO ########## TODO ########## TODO ########## TODO ########## TODO ##
+########## TODO ########## TODO ########## TODO ########## TODO ##########
+#      | |
+#      | |
+#   |\ | | /|
+#   \ \| |/ /
+#    \     /
+#     \   /
+#      \ /
+
         # If the current state is off,
         if (self.current_state.id == 'off'):
             # if the setPoint is greater 
@@ -452,14 +413,19 @@ class TemperatureMachine(StateMachine):
             if (self.setPoint > temp):
                 # enter the heat state.
                 self.on_enter_heat()
-                self.send("cycle_off_to_heat")
+                self.send("cycle")
             
             # Otherwise, if the SetPoint is less 
             # than the current temperature,
             elif (self.setPoint < temp):
                 # enter the cool state.
                 self.on_enter_cool()
-                self.send("cycle_off_to_cool")
+                self.send("cycle")
+
+            # Otherwise (if the setPoint and the 
+            # current temperature are equal),
+            #else:
+                # 
 
         # Otherwise (if the current state is not off),
         else:
@@ -483,6 +449,17 @@ class TemperatureMachine(StateMachine):
                     self.on_exit_heat()
                     self.on_enter_cool()
                     self.send("cycle_heat_to_cool")
+
+#       / \
+#      /   \
+#     /     \
+#    / /| |\ \
+#    |/ | | \|
+#       | |
+#       | |
+########## TODO ########## TODO ########## TODO ########## TODO ##########
+## TODO ########## TODO ########## TODO ########## TODO ########## TODO ##
+########## TODO ########## TODO ########## TODO ########## TODO ##########
 
     ##
     ## run - kickoff the display management functionality of the thermostat
@@ -524,39 +501,41 @@ class TemperatureMachine(StateMachine):
                 print("Processing Display Info...")
     
             ## Grab the current time        
-            current_time = str(datetime.now())
+            current_time = datetime.now()
     
             ## Setup display line 1
 
             ##
             ## Setup the first line of the LCD display to incude the 
             ## current date and time.
-            lcd_line_1 = datetime.now().strftime('%b %d  %H:%M:%S\n')
+            lcd_line_1 = current_time
 
-
+########## TODO ########## TODO ########## TODO ########## TODO ##########
+## TODO ########## TODO ########## TODO ########## TODO ########## TODO ##
+########## TODO ########## TODO ########## TODO ########## TODO ##########
+#      | |
+#      | |
+#   |\ | | /|
+#   \ \| |/ /
+#    \     /
+#     \   /
+#      \ /
     
             ## Setup Display Line 2
             if(altCounter < 6):
-
                 ##
                 ## Setup the second line of the LCD display to incude the 
                 # current temperature in degrees Fahrenheit. 
                 temp_string = str(round(tsm.getFahrenheit(), 2))
-                line_string = ' Current: ' + temp_string           
-                
-                lcd_line_2 = line_string
+                lcd_line_2 = str(f"Current temp: {temp_string}")
     
                 altCounter = altCounter + 1
-
             else:
-                state_string = str(self.current_state.id).capitalize()
-                set_point_string = str(self.setPoint)
-                line_string = ' ' + state_string + ' | Set: ' + set_point_string
                 ##
                 ## Setup the second line of the LCD display to incude the 
                 ## current state of the thermostat and the current 
                 ## temperature setpoint in degrees Fahrenheit. 
-                lcd_line_2 = line_string
+                lcd_line_2 = str(f"{self.current_state.id} Setpoint: {self.setPoint}")
     
                 altCounter = altCounter + 1
                 if(altCounter >= 11):
@@ -566,10 +545,19 @@ class TemperatureMachine(StateMachine):
                     altCounter = 1
 
             ## Update Display
-            screen.updateScreen(lcd_line_1 + lcd_line_2)
+            screen.updateScreen(str(lcd_line_1) + str(lcd_line_2))
 
 
-
+#       / \
+#      /   \
+#     /     \
+#    / /| |\ \
+#    |/ | | \|
+#       | |
+#       | |
+########## TODO ########## TODO ########## TODO ########## TODO ##########
+## TODO ########## TODO ########## TODO ########## TODO ########## TODO ##
+########## TODO ########## TODO ########## TODO ########## TODO ##########
 
             ## Update server every 30 seconds
             if(DEBUG):

@@ -359,34 +359,28 @@ class TemperatureMachine(StateMachine):
         ## Change the state of the thermostat.        
         self.send("cycle")
 
-        # If the system is off when
-        # the button is pressed, 
-        if (self.current_state.id == 'off'):
-            # if the temperature is less than the 
-            # maximum set point,
-            if (tsm.getFahrenheit() < self.maxSetPoint):
-                # then switch to heat and turn on 
-                # only the red light.
-                redLight.off()
-                blueLight.off()
-
         # If the system is heating 
-        # when the button is pressed,
+        # (if the temperature is below the setPoint),
         if (self.current_state.id == 'heat'):
-            # if the temperature is greater than 
-            # the minimum set point,
-            if (tsm.getFahrenheit() > self.minSetPoint):
-                # then switch to cool snd turn on 
-                # only the blue light.
-                blueLight.off()
-                redLight.on()
+            # then turn on the blue light.
+            if (self.setPoint > self.minSetPoint):
+                self.send("cycle_heat_to_cool")
+                blueLight.on()
+                redLight.off()
 
         # If the system is cooling 
-        # when the button is pressed,
+        # (if the temperature is above the setPoint),
         if (self.current_state.id == 'cool'):
-            # then switch to off and turn the lights off.
-                redLight.off()
-                blueLight.on()                
+            # then turn the red light on.
+            if (self.setPoint < self.maxSetPoint):
+                self.send("cycle_cool_to_off")
+                
+
+        # If the system is off, 
+        if (self.current_state.id == 'off'):
+            self.send("cycle_off_to_heat")
+            redLight.on()
+            blueLight.off()
 
     ##
     ## processTempIncButton - Utility method used to update the 
