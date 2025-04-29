@@ -1,7 +1,7 @@
 # CS-350 - Emerging Sys Arch and Tech (Embedded Systems) course
 
 ## Summarize the project and what problem it was solving.
-I have included all completed course assignments in this repository.  The main project is of course the final project, where a smart thermostat was developed to a list of specifications.  These included that the system detect temperature in real-time, and that the system activate a heating or cooling system in order to make the current temperature match a target temperature set by the user.  The user is able to increase or decrease the target temperature by pressing one of two buttons to increase or decrease this value, and a third button for alternating between heating, cooling, and off states for a heating and cooling system.  
+I have included all completed course assignments in this repository.  The main project is of course the final project, where a smart thermostat was developed to a list of specifications.  These included that the system detect temperature in real-time, and that the system activate a heating or cooling system in order to make the current temperature match a target temperature set by the user.  The user is able to increase or decrease the target temperature by pressing one of two buttons to increase or decrease this value, and a third button for alternating between heating, cooling, and off states.  
 
 
 ## What did you do particularly well?
