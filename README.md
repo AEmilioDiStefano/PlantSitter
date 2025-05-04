@@ -1,4 +1,4 @@
-# CS-350 - Emerging Sys Arch and Tech (Embedded Systems) course
+# CS-350 - Emerging Sys Arch and Tech (Embedded Systems) course 
 
 
 I have included all completed course assignments in this repository.  The final project involved the development a smart thermostat running on a Raspberry Pi single-board computer.  The requirements for this project included that the system detect temperature in real-time, and that the system activate a heating or cooling system in order to make the current temperature match a target temperature set by the user.  The user is able to increase or decrease the target temperature by pressing one of two buttons to increase or decrease this value, and a third button for alternating between heating, cooling, and off states.  
