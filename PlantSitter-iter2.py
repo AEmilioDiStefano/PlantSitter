@@ -1031,10 +1031,10 @@ def runHumidityStateMachine():
 def main():
 
     ## Create a thread for the HumidityStateMachine
-    temperature_control_thread = threading.Thread(runTemperatureStateMachine,)
+    temperature_control_thread = threading.Thread(target=runTemperatureStateMachine,)
 
     ## Create a thread for the TemperatureStateMachine
-    humidity_control_thread = threading.Thread(runHumidityStateMachine,)
+    humidity_control_thread = threading.Thread(target=runHumidityStateMachine,)
 
     ## Start the tempratureControlThread
     temperature_control_thread.start()
