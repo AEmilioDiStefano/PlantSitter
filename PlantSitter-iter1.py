@@ -545,58 +545,6 @@ class TemperatureMachine(StateMachine):
 
     ## End class TemperatureMachine definition
 
-##
-## Setup our Temperature State Machine
-##
-tsm = TemperatureMachine()
-tsm.run()
-
-##
-## Configure our Red button to use GPIO 25 and to execute
-## the function to increase the setpoint by a degree.
-##
-tempIncButton = Button(25)
-##
-## Change the state of our thermostat when 
-## the red button is pushed.
-tempIncButton.when_pressed = tsm.processTempIncButton
-
-##
-## Configure our Blue button to use GPIO 12 and to execute
-## the function to decrease the setpoint by a degree.
-##
-tempDecButton = Button(12)
-##
-## Change the state of our thermostat when 
-## the blue button is pushed.
-tempDecButton.when_pressed = tsm.processTempDecButton
-
-##
-## Setup loop variable
-##
-repeat = True
-
-##
-## Repeat until the user creates a keyboard interrupt (CTRL-C)
-##
-while repeat:
-    try:
-        ## wait
-        sleep(30)
-
-    except KeyboardInterrupt:
-        ## Catch the keyboard interrupt (CTRL-C) and exit cleanly
-        ## we do not need to manually clean up the GPIO pins, the 
-        ## gpiozero library handles that process.
-        print("Cleaning up. Exiting...")
-
-        ## Stop the loop
-        repeat = False
-        
-        ## Close down the display
-        tsm.endDisplay = True
-        sleep(1)
-
 #################################################################################################################
 #################################################################################################################
 #################################################################################################################
@@ -909,7 +857,7 @@ class HumidityMachine(StateMachine):
                 ##
                 ## Setup the second line of the LCD display to incude the 
                 # current humidity. 
-                temp_string = str(round(tsm.getFahrenheit(), 2))
+                temp_string = str(round(hsm.getFahrenheit(), 2))
                 line_string = ' Humidity: ' + temp_string           
                 
                 lcd_line_2 = line_string
@@ -943,7 +891,7 @@ class HumidityMachine(StateMachine):
                 ##
                 ## Send our current state information to the 
                 ## HumidityServer over the Serial Port (UART). 
-                ser.write(tsm.setupSerialOutput().encode())
+                ser.write(hsm.setupSerialOutput().encode())
 
                 counter = 1
             else:
@@ -956,62 +904,128 @@ class HumidityMachine(StateMachine):
 
     ## End class HumidityMachine definition
 
+###############################################################################################
 
-##
-## Setup our Humidity State Machine
-##
+tsm = TemperatureMachine()
+
+def runTemperatureStateMachine():
+    ##
+    ## Setup our Temperature State Machine
+    ##
+    
+    tsm.run()
+
+    ##
+    ## Configure our Red button to use GPIO 25 and to execute
+    ## the function to increase the setpoint by a degree.
+    ##
+    tempIncButton = Button(25)
+    ##
+    ## Change the state of our thermostat when 
+    ## the red button is pushed.
+    tempIncButton.when_pressed = tsm.processTempIncButton
+
+    ##
+    ## Configure our Blue button to use GPIO 12 and to execute
+    ## the function to decrease the setpoint by a degree.
+    ##
+    tempDecButton = Button(12)
+    ##
+    ## Change the state of our thermostat when 
+    ## the blue button is pushed.
+    tempDecButton.when_pressed = tsm.processTempDecButton
+
+    ##
+    ## Setup loop variable
+    ##
+    repeat = True
+
+    ##
+    ## Repeat until the user creates a keyboard interrupt (CTRL-C)
+    ##
+    while repeat:
+        try:
+            ## wait
+            sleep(30)
+
+        except KeyboardInterrupt:
+            ## Catch the keyboard interrupt (CTRL-C) and exit cleanly
+            ## we do not need to manually clean up the GPIO pins, the 
+            ## gpiozero library handles that process.
+            print("Cleaning up. Exiting...")
+
+            ## Stop the loop
+            repeat = False
+            
+            ## Close down the display
+            tsm.endDisplay = True
+            sleep(1)
+
+###############################################################################################
+
 hsm = HumidityMachine()
-hsm.run()
 
-##
-## Configure our humIncButton (humidity increase button) 
-#  to use GPIO pin 24.
-##
-humIncButton = Button(24)
-##
-## Change the state of our thermostat when 
-## the green button is pushed.
-humIncButton.when_pressed = hsm.processHumIncButton
+def runHumidityStateMachine():
+    ##
+    ## Setup our Humidity State Machine
+    ##
+    hsm.run()
 
-##
-##
-## Configure our humDecButton (humidity decrease button) 
-#  to use GPIO pin 16.
-##
-humDecButton = Button(16)
-##
-## Change the state of our thermostat when 
-## the green button is pushed.
-humDecButton.when_pressed = hsm.processHumDecButton
-##
+    ##
+    ## Configure our humIncButton (humidity increase button) 
+    #  to use GPIO pin 24.
+    ##
+    humIncButton = Button(24)
+    ##
+    ## Change the state of our thermostat when 
+    ## the green button is pushed.
+    humIncButton.when_pressed = hsm.processHumIncButton
 
-##
-## Setup loop variable
-##
-repeat = True
+    ##
+    ##
+    ## Configure our humDecButton (humidity decrease button) 
+    #  to use GPIO pin 16.
+    ##
+    humDecButton = Button(16)
+    ##
+    ## Change the state of our thermostat when 
+    ## the green button is pushed.
+    humDecButton.when_pressed = hsm.processHumDecButton
+    ##
+    ## Setup loop variable
+    ##
+    repeat = True
 
-##
-## Repeat until the user creates a keyboard interrupt (CTRL-C)
-##
-while repeat:
-    try:
-        ## wait
-        sleep(30)
+    ##
+    ## Repeat until the user creates a keyboard interrupt (CTRL-C)
+    ##
+    while repeat:
+        try:
+            ## wait
+            sleep(30)
 
-    except KeyboardInterrupt:
-        ## Catch the keyboard interrupt (CTRL-C) and exit cleanly
-        ## we do not need to manually clean up the GPIO pins, the 
-        ## gpiozero library handles that process.
-        print("Cleaning up. Exiting...")
+        except KeyboardInterrupt:
+            ## Catch the keyboard interrupt (CTRL-C) and exit cleanly
+            ## we do not need to manually clean up the GPIO pins, the 
+            ## gpiozero library handles that process.
+            print("Cleaning up. Exiting...")
 
-        ## Stop the loop
-        repeat = False
-        
-        ## Close down the display
-        tsm.endDisplay = True
-        sleep(1)
+            ## Stop the loop
+            repeat = False
+            
+            ## Close down the display
+            hsm.endDisplay = True
+            sleep(1)
 
+###############################################################################################
 
+def main():
+    temperatureControlThread = threading.Thread(runTemperatureStateMachine,)
+    humidityControlThread = threading.Thread(runHumidityStateMachine,)
 
+    temperatureControlThread.start()
+    humidityControlThread.start()
+
+main()
 
 
