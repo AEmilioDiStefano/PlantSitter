@@ -1,7 +1,6 @@
-# The Thermostat will send a status update to the TemperatureServer
-# over the serial port every 30 seconds in a comma delimited string
-# including the state of the thermostat, the current temperature
-# in degrees Fahrenheit, and the setpoint of the thermostat.
+# PlantSitter uses a state machine desing to run two state machines 
+# simultaneously - one for air temperature control and another for 
+# soil humidity control. 
 #
 #------------------------------------------------------------------
 # Change History
@@ -904,10 +903,14 @@ class HumidityMachine(StateMachine):
 
     ## End class HumidityMachine definition
 
-###############################################################################################
-
+##
+## Create a TemperatureStateMachine object called tsm
+##
 tsm = TemperatureMachine()
 
+##
+## This function sets up and starts a state machine of type TemperatureStateMachine
+##
 def runTemperatureStateMachine():
     ##
     ## Setup our Temperature State Machine
@@ -961,10 +964,14 @@ def runTemperatureStateMachine():
             tsm.endDisplay = True
             sleep(1)
 
-###############################################################################################
-
+##
+## Create a HumidityStateMachine object called hsm
+##
 hsm = HumidityMachine()
 
+##
+## This function sets up and starts a state machine of type TemperatureStateMachine
+##
 def runHumidityStateMachine():
     ##
     ## Setup our Humidity State Machine
@@ -1017,15 +1024,25 @@ def runHumidityStateMachine():
             hsm.endDisplay = True
             sleep(1)
 
-###############################################################################################
-
+##
+## This is our main function which runs an instance of each state machine
+## in a separate thread.
+##
 def main():
-    temperatureControlThread = threading.Thread(runTemperatureStateMachine,)
-    humidityControlThread = threading.Thread(runHumidityStateMachine,)
 
-    temperatureControlThread.start()
-    humidityControlThread.start()
+    ## Create a thread for the HumidityStateMachine
+    temperature_control_thread = threading.Thread(runTemperatureStateMachine,)
 
+    ## Create a thread for the TemperatureStateMachine
+    humidity_control_thread = threading.Thread(runHumidityStateMachine,)
+
+    ## Start the tempratureControlThread
+    temperature_control_thread.start()
+
+    ## Start the humidityControlThread
+    humidity_control_thread.start()
+
+## Call our main function.
 main()
 
 
