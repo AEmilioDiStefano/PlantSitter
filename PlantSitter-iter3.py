@@ -138,7 +138,7 @@ greenLight = PWMLED(20)
 ## converted into a class so that we can more easily consume the 
 ## operational capabilities.
 ##
-class ManagedDisplay():
+class ManagedTemperatureDisplay():
     ##
     ## Class Initialization method to setup the display
     ##
@@ -156,7 +156,43 @@ class ManagedDisplay():
         ## compatible with all versions of RPI as of Jan. 2019
         ##
         self.lcd_rs = digitalio.DigitalInOut(board.D17)
-        self.lcd_en = digitalio.DigitalInOut(board.D27)
+        self.lcd_en = digitalio.DigitalInOut(board.D8)
+        self.lcd_d4 = digitalio.DigitalInOut(board.D5)
+        self.lcd_d5 = digitalio.DigitalInOut(board.D6)
+        self.lcd_d6 = digitalio.DigitalInOut(board.D13)
+        self.lcd_d7 = digitalio.DigitalInOut(board.D26)
+
+        # Modify this if you have a different sized character LCD
+        self.lcd_columns = 16
+        self.lcd_rows = 2 
+
+        # Initialise the lcd class
+        self.lcd = characterlcd.Character_LCD_Mono(self.lcd_rs, self.lcd_en, 
+                    self.lcd_d4, self.lcd_d5, self.lcd_d6, self.lcd_d7, 
+                    self.lcd_columns, self.lcd_rows)
+
+        # wipe LCD screen before we start
+        self.lcd.clear()
+
+class ManagedHumidityDisplay():
+    ##
+    ## Class Initialization method to setup the display
+    ##
+    def __init__(self):
+        ##
+        ## Setup the six GPIO lines to communicate with the display.
+        ## This leverages the digitalio class to handle digital 
+        ## outputs on the GPIO lines. There is also an analagous
+        ## class for analog IO.
+        ##
+        ## You need to make sure that the port mappings match the
+        ## physical wiring of the display interface to the 
+        ## GPIO interface.
+        ##
+        ## compatible with all versions of RPI as of Jan. 2019
+        ##
+        self.lcd_rs = digitalio.DigitalInOut(board.D17)
+        self.lcd_en = digitalio.DigitalInOut(board.D7)
         self.lcd_d4 = digitalio.DigitalInOut(board.D5)
         self.lcd_d5 = digitalio.DigitalInOut(board.D6)
         self.lcd_d6 = digitalio.DigitalInOut(board.D13)
@@ -204,9 +240,10 @@ class ManagedDisplay():
     ## End class ManagedDisplay definition  
 
 ##
-## Initialize our display
+## Initialize our displays
 ##
-screen = ManagedDisplay()
+temperature_screen = ManagedTemperatureDisplay()
+humidity_screen = ManagedHumidityDisplay()
 
 ####################################################################################################################
 ####################################################################################################################
@@ -477,7 +514,7 @@ class TemperatureMachine(StateMachine):
     ## run - kickoff the display management functionality of the thermostat
     ##
     def run(self):
-        myThread = Thread(target=self.manageMyDisplay)
+        myThread = Thread(target=self.manageTemperatureDisplay)
         myThread.start()
 
     ##
@@ -504,7 +541,7 @@ class TemperatureMachine(StateMachine):
     ##
     ##  This function is designed to manage the LCD Display
     ##
-    def manageMyDisplay(self):
+    def manageTemperatureDisplay(self):
         counter = 1
         altCounter = 1
         while not self.endDisplay:
@@ -521,8 +558,6 @@ class TemperatureMachine(StateMachine):
             ## Setup the first line of the LCD display to incude the 
             ## current date and time.
             lcd_line_1 = datetime.now().strftime('%b %d  %H:%M:%S\n')
-
-
     
             ## Setup Display Line 2
             if(altCounter < 6):
@@ -530,8 +565,8 @@ class TemperatureMachine(StateMachine):
                 ##
                 ## Setup the second line of the LCD display to incude the 
                 # current temperature in degrees Fahrenheit. 
-                temp_string = str(round(tsm.getFahrenheit(), 2))
-                line_string = ' Current: ' + temp_string           
+                temperature_string = str(round(tsm.getFahrenheit(), 2))
+                line_string = ' Current: ' + temperature_string           
                 
                 lcd_line_2 = line_string
     
@@ -555,7 +590,7 @@ class TemperatureMachine(StateMachine):
                     altCounter = 1
 
             ## Update Display
-            screen.updateScreen(lcd_line_1 + lcd_line_2)
+            temperature_screen.updateScreen(lcd_line_1 + lcd_line_2)
 
             ## Update server every 30 seconds
             if(DEBUG):
@@ -573,7 +608,7 @@ class TemperatureMachine(StateMachine):
             sleep(1)
 
         ## Cleanup display
-        screen.cleanupDisplay()
+        temperature_screen.cleanupDisplay()
 
     ## End class TemperatureMachine definition
 
@@ -602,11 +637,11 @@ class HumidityMachine(StateMachine):
     ##
     ##  off
     ##  drying
-    ##  watering
+    ##  humidifying
     ##
     off = State(initial = True)
     drying = State()
-    watering = State()
+    humidifying = State()
 
     ##
     ## Default humidity setPoint is defined here
@@ -628,28 +663,28 @@ class HumidityMachine(StateMachine):
     ##
     cycle = (
         off.to(drying) |
-        drying.to(watering) |
-        watering.to(off)
+        drying.to(humidifying) |
+        humidifying.to(off)
     )
 
-    cycle_drying_to_watering = (
-        drying.to(watering)
+    cycle_drying_to_humidifying = (
+        drying.to(humidifying)
     )
 
-    cycle_watering_to_drying = (
-        watering.to(drying)
+    cycle_humidifying_to_drying = (
+        humidifying.to(drying)
     )
 
-    cycle_watering_to_off = (
-        watering.to(off)
+    cycle_humidifying_to_off = (
+        humidifying.to(off)
     )
 
     cycle_off_to_drying = (
         off.to(drying)
     )
 
-    cycle_off_to_watering = (
-        off.to(watering)
+    cycle_off_to_humidifying = (
+        off.to(humidifying)
     )
 
     ##
@@ -676,26 +711,26 @@ class HumidityMachine(StateMachine):
         yellowLight.off()
 
     ##
-    ## on_enter_watering - Action performed when the state machine transitions
-    ## into the 'watering' state
+    ## on_enter_humidifying - Action performed when the state machine transitions
+    ## into the 'humidifying' state
     ##
-    def on_enter_watering(self):
+    def on_enter_humidifying(self):
         ##
         ## Pulse the green indicator light upon entering 
-        ## the 'watering' state.
+        ## the 'humidifying' state.
         greenLight.pulse()
 
         if(DEBUG):
-            print("* Changing state to watering")
+            print("* Changing state to humidifying")
 
     ##
-    ## on_exit_watering - Action performed when the statemachine transitions
-    ## out of the 'watering' state.
+    ## on_exit_humidifying - Action performed when the statemachine transitions
+    ## out of the 'humidifying' state.
     ##
-    def on_exit_watering(self):
+    def on_exit_humidifying(self):
         ##
         ## Turn off the green indicator light upon exiting 
-        ## the 'watering' state.
+        ## the 'humidifying' state.
         greenLight.off()
 
     ##
@@ -787,56 +822,46 @@ class HumidityMachine(StateMachine):
             # Otherwise, if the SetPoint is less 
             # than the current humidity,
             elif (self.setPoint < hum):
-                # enter the watering state.
-                self.on_enter_watering()
-                self.send("cycle_off_to_watering")
+                # enter the humidifying state.
+                self.on_enter_humidifying()
+                self.send("cycle_off_to_humidifying")
 
         # Otherwise (if the current state is not off),
         else:
-            # if the current state is watering,
-            if (self.current_state.id == 'watering'):
+            # if the current state is humidifying,
+            if (self.current_state.id == 'humidifying'):
                 # if the setPoint is greater 
                 # than the current humidity,
                 if (self.setPoint > hum):
-                    # then transition from watering
+                    # then transition from humidifying
                     # state to drying state.
-                    self.on_exit_watering()
+                    self.on_exit_humidifying()
                     self.on_enter_drying()
-                    self.send("cycle_watering_to_drying")
+                    self.send("cycle_humidifying_to_drying")
             # if the current state is drying,
             if (self.current_state.id == 'drying'):
                 # if the setPoint is less than 
                 # the current humidity,
                 if (self.setPoint < hum):
                     # then transition from drying
-                    # state to watering state.
+                    # state to humidifying state.
                     self.on_exit_drying()
-                    self.on_enter_watering()
-                    self.send("cycle_drying_to_watering")
+                    self.on_enter_humidifying()
+                    self.send("cycle_drying_to_humidifying")
 
     ##
     ## run - kickoff the display management functionality of the thermostat
     ##
     def run(self):
-        myThread = Thread(target=self.manageMyDisplay)
+        myThread = Thread(target=self.manageHumidityDisplay)
         myThread.start()
 
-
-    ###########################################################
-    ########## FIXME: Change this to detect humidity ##########
-    ########## rather than temperature.              ##########
-    ###########################################################
     ##
     ## Get the humidity
     ##
     def getHumidity(self):
         h = thSensor.relative_humidity
-        return h
-
-    ###########################################################
-    ###########################################################
-    ###########################################################
-    
+        return h 
     
     ##
     ##  Configure output string for the Thermostat Server
@@ -855,7 +880,7 @@ class HumidityMachine(StateMachine):
     ##
     ##  This function is designed to manage the LCD Display
     ##
-    def manageMyDisplay(self):
+    def manageHumidityDisplay(self):
         counter = 1
         altCounter = 1
         while not self.endDisplay:
@@ -863,48 +888,33 @@ class HumidityMachine(StateMachine):
             if(DEBUG):
                 print("Processing Display Info...")
 
-            ###########################################################
-            ########## FIXME: Replace this with more useful  ##########
-            ########## information. The other screen will    ##########
-            ########## already show the date and time.       ##########
-            ###########################################################
-
-            ## Grab the current time        
-            current_time = str(datetime.now())
-    
-            ## Setup display line 1
-
-            ##
-            ## Setup the first line of the LCD display to incude the 
-            ## current date and time.
-            lcd_line_1 = datetime.now().strftime('%b %d  %H:%M:%S\n')
-
-            ###########################################################
-            ###########################################################
-            ###########################################################
+            
 
             ## Setup Display Line 2
             if(altCounter < 6):
 
                 ##
+                ## Setup display line 1
+                ##
+                lcd_line_1 = ' Humidity: '
+
+                ##
                 ## Setup the second line of the LCD display to incude the 
-                # current humidity. 
-                temp_string = str(round(hsm.getHumidity(), 2))
-                line_string = ' Humidity: ' + temp_string           
-                
-                lcd_line_2 = line_string
+                ## current humidity. 
+                ##
+                lcd_line_2 = str(round(hsm.getHumidity(), 2))
     
                 altCounter = altCounter + 1
 
             else:
                 state_string = str(self.current_state.id).capitalize()
                 set_point_string = str(self.setPoint)
-                line_string = ' ' + state_string + ' | Set: ' + set_point_string
+                lcd_line_1 = ' ' + state_string + ' '
                 ##
                 ## Setup the second line of the LCD display to incude the 
                 ## current state of the hygrometer and the current 
                 ## humidity setpoint. 
-                lcd_line_2 = line_string
+                lcd_line_2 = ' Set to: ' + set_point_string
     
                 altCounter = altCounter + 1
                 if(altCounter >= 11):
@@ -914,7 +924,7 @@ class HumidityMachine(StateMachine):
                     altCounter = 1
 
             ## Update Display
-            screen.updateScreen(lcd_line_1 + lcd_line_2)
+            humidity_screen.updateScreen(lcd_line_1 + lcd_line_2)
 
             ## Update server every 30 seconds
             if(DEBUG):
@@ -932,7 +942,7 @@ class HumidityMachine(StateMachine):
             sleep(1)
 
         ## Cleanup display
-        screen.cleanupDisplay()
+        humidity_screen.cleanupDisplay()
 
     ## End class HumidityMachine definition
 
@@ -956,6 +966,7 @@ def runTemperatureStateMachine():
     ## the function to increase the setpoint by a degree.
     ##
     tempIncButton = Button(25)
+
     ##
     ## Change the value of the temperature setpoint when 
     ## the red button is pushed.
