@@ -19,7 +19,7 @@ from datetime import datetime
 import tracemalloc
 
 import asyncio
-from reduct import Client, Bucket
+from reduct import Client, Bucket, BucketSettings, QuotaType
 from datetime import datetime
 import random
 
@@ -175,7 +175,7 @@ class ManagedTemperatureDisplay():
         self.lcd.clear()
 
 class ManagedHumidityDisplay():
-    ##
+    ## 
     ## Class Initialization method to setup the display
     ##
     def __init__(self):
@@ -431,27 +431,13 @@ class TemperatureMachine(StateMachine):
     ## updateDB - this method updates our database with a timestamped temperature reading
     ##
     async def updateDB(self):
-        # These variables will be used for connecting and saving data to our database
-        reductstore_url = "http://192.168.8.176:8383"  
-        BUCKET_NAME = "temperature-data"
-        current_temperature = floor(self.getFahrenheit())
-
-        client = await Client.connect(reductstore_url)
-
-        # Get or create the bucket
-        bucket: Bucket = await client.get_or_create_bucket(BUCKET_NAME)
-
-        while True:
-            # Simulate a temperature reading
-            timestamp = int(datetime.timezone.utc().timestamp() * 1e6)  # Microseconds since epoch
-            data = str(current_temperature).encode("utf-8")
-
-            # Write the data
-            await bucket.write(current_temperature, data, timestamp)
-            print(f"Recorded temperature: {current_temperature:.2f}°F at {datetime.timezone.utc()}")
-            if(DEBUG):
-                print(f"TIMESTAMPED TEMPERATURE READING SAVED TO DATABASE\n {timestamp}")
-            await asyncio.sleep(10)
+        # Create a ReductStore client object
+        async with Client("http://192.168.8.176:8383/", api_token="my-token") as client:
+            bucket = await client.create_bucket(
+                "my-bucket",
+                BucketSettings(quota_type=QuotaType.FIFO, quota_size=1_000_000_000),
+                exist_ok=True,
+            )
 
     ##
     ## updateLights - Utility method to update the LED indicators on the 
@@ -514,8 +500,8 @@ class TemperatureMachine(StateMachine):
     ## run - kickoff the display management functionality of the thermostat
     ##
     def run(self):
-        myThread = Thread(target=self.manageTemperatureDisplay)
-        myThread.start()
+        temperatureDisplayThread = Thread(target=self.manageTemperatureDisplay,)
+        temperatureDisplayThread.start()
 
     ##
     ## Get the temperature in Fahrenheit
@@ -853,8 +839,8 @@ class HumidityMachine(StateMachine):
     ## run - kickoff the display management functionality of the thermostat
     ##
     def run(self):
-        myThread = Thread(target=self.manageHumidityDisplay)
-        myThread.start()
+        humidityDisplayThread = Thread(target=self.manageHumidityDisplay,)
+        humidityDisplayThread.start()
 
     ##
     ## Get the humidity
@@ -992,7 +978,6 @@ def runTemperatureStateMachine():
     ##
     while repeat:
         try:
-            asyncio.run(tsm.updateDB())
             ## wait
             sleep(30)
 
