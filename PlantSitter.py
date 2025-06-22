@@ -38,7 +38,7 @@ from statemachine import StateMachine, State
 ## thermostat sensor and the I2C bus
 ##
 import board
-##import adafruit_ahtx0
+import adafruit_ahtx0
 import adafruit_sht31d
 
 ############################################################
@@ -95,9 +95,9 @@ i2c = board.I2C()
 ## are using an AHTx0 or SHT31 temperature sensor.
 ##
 
-#thSensor = adafruit_ahtx0.AHTx0(i2c)
+thSensor = adafruit_ahtx0.AHTx0(i2c)
 
-thSensor = adafruit_sht31d.SHT31D(i2c)
+#thSensor = adafruit_sht31d.SHT31D(i2c)
 
 ##
 ## Initialize our serial connection
@@ -174,6 +174,35 @@ class ManagedTemperatureDisplay():
         # wipe LCD screen before we start
         self.lcd.clear()
 
+    ##
+    ## cleanupDisplay - Method used to cleanup the digitalIO lines that
+    ## are used to run the display.
+    ##
+    def cleanupDisplay(self):
+        # Clear the LCD first - otherwise we won't be abe to update it.
+        self.lcd.clear()
+        self.lcd_rs.deinit()
+        self.lcd_en.deinit()
+        self.lcd_d4.deinit()
+        self.lcd_d5.deinit()
+        self.lcd_d6.deinit()
+        self.lcd_d7.deinit()
+        
+    ##
+    ## clear - Convenience method used to clear the display
+    ##
+    def clear(self):
+        self.lcd.clear()
+
+    ##
+    ## updateTemperatureScreen - Convenience method used to update the temperatuere screen message.
+    ##
+    def updateTemperatureScreen(self, message):
+        self.lcd.clear()
+        self.lcd.message = message
+
+        ## End class ManagedTemperatureDisplay definition 
+
 class ManagedHumidityDisplay():
     ## 
     ## Class Initialization method to setup the display
@@ -231,13 +260,13 @@ class ManagedHumidityDisplay():
         self.lcd.clear()
 
     ##
-    ## updateScreen - Convenience method used to update the message.
+    ## updateHumidityScreen - Convenience method used to update the humidity screen message.
     ##
-    def updateScreen(self, message):
+    def updateHumidityScreen(self, message):
         self.lcd.clear()
         self.lcd.message = message
 
-    ## End class ManagedDisplay definition  
+    ## End class ManagedHumidityDisplay definition  
 
 ##
 ## Initialize our displays
@@ -428,16 +457,23 @@ class TemperatureMachine(StateMachine):
             self.setPoint = self.setPoint - 1
 
     ##
-    ## updateDB - this method updates our database with a timestamped temperature reading
+    ## updateDBTemperature - this method updates our database with a timestamped temperature reading
     ##
-    async def updateDB(self):
-        # Create a ReductStore client object
-        async with Client("http://192.168.8.176:8383/", api_token="my-token") as client:
-            bucket = await client.create_bucket(
-                "my-bucket",
-                BucketSettings(quota_type=QuotaType.FIFO, quota_size=1_000_000_000),
-                exist_ok=True,
-            )
+#    async def updateDBTemperature(self):
+#        current_temperature = floor(self.getFahrenheit())
+#        date_and_time = str(datetime.now().strftime('%b %d  %H:%M:%S\n'))
+#        # Create a ReductStore client object
+#        async with Client("http://192.168.8.176:8383/", api_token="temperature--token") as client:
+#            bucket = await client.create_bucket(
+#                "temperature-bucket",
+#                BucketSettings(quota_type=QuotaType.FIFO, quota_size=1_000_000_000),
+#                exist_ok=True,
+#             )
+# 
+#            await bucket.write(current_temperature, timestamp=date_and_time)
+# 
+#            if(DEBUG):
+#                print("-- WRITING DATA TO TEMPERATURE BUCKET --") 
 
     ##
     ## updateLights - Utility method to update the LED indicators on the 
@@ -452,8 +488,8 @@ class TemperatureMachine(StateMachine):
         ## Verify values for debug purposes
         if(DEBUG):
             print(f"State: {self.current_state.id}")
-            print(f"SetPoint: {self.setPoint}")
-            print(f"Temp: {current_temperature}")
+            print(f"Target Temperature: {self.setPoint}")
+            print(f"Actual Temperature: {current_temperature}")
 
         # Determine visual identifiers
 
@@ -500,8 +536,10 @@ class TemperatureMachine(StateMachine):
     ## run - kickoff the display management functionality of the thermostat
     ##
     def run(self):
-        temperatureDisplayThread = Thread(target=self.manageTemperatureDisplay,)
+        temperatureDisplayThread = Thread(target=self.processTemperatureData,)
         temperatureDisplayThread.start()
+#        temperatureDBThread = Thread(target=asyncio.run(self.updateDBTemperature()),)
+#        temperatureDBThread.start()
 
     ##
     ## Get the temperature in Fahrenheit
@@ -525,15 +563,17 @@ class TemperatureMachine(StateMachine):
     endDisplay = False
 
     ##
-    ##  This function is designed to manage the LCD Display
+    ##  This function is designed to manage the LCD Display and 
+    ##  store timestamped temperatuyre data to the database.
+
     ##
-    def manageTemperatureDisplay(self):
+    def processTemperatureData(self):
         counter = 1
         altCounter = 1
         while not self.endDisplay:
             ## Only display if the DEBUG flag is set
             if(DEBUG):
-                print("Processing Display Info...")
+                print("Processing Temperature Display Info...")
     
             ## Grab the current time        
             current_time = str(datetime.now())
@@ -576,16 +616,17 @@ class TemperatureMachine(StateMachine):
                     altCounter = 1
 
             ## Update Display
-            temperature_screen.updateScreen(lcd_line_1 + lcd_line_2)
+            temperature_screen.updateTemperatureScreen(lcd_line_1 + lcd_line_2)
 
             ## Update server every 30 seconds
             if(DEBUG):
-               print(f"Counter: {counter}")
+               print(f"TemperatureStateMachine Counter: {counter}")
             if((counter % 30) == 0):
                 ##
                 ## Send our current state information to the 
                 ## TemperatureServer over the Serial Port (UART). 
                 ser.write(tsm.setupSerialOutput().encode())
+#                asyncio.run(self.updateDBTemperature())
 
                 counter = 1
             else:
@@ -622,12 +663,12 @@ class HumidityMachine(StateMachine):
     ## Define the three states for our machine.
     ##
     ##  off
-    ##  drying
-    ##  humidifying
+    ##  dry
+    ##  hum
     ##
     off = State(initial = True)
-    drying = State()
-    humidifying = State()
+    dry = State()
+    hum = State()
 
     ##
     ## Default humidity setPoint is defined here
@@ -648,75 +689,75 @@ class HumidityMachine(StateMachine):
     ## thermostat
     ##
     cycle = (
-        off.to(drying) |
-        drying.to(humidifying) |
-        humidifying.to(off)
+        off.to(dry) |
+        dry.to(hum) |
+        hum.to(off)
     )
 
-    cycle_drying_to_humidifying = (
-        drying.to(humidifying)
+    cycle_dry_to_hum = (
+        dry.to(hum)
     )
 
-    cycle_humidifying_to_drying = (
-        humidifying.to(drying)
+    cycle_hum_to_dry = (
+        hum.to(dry)
     )
 
-    cycle_humidifying_to_off = (
-        humidifying.to(off)
+    cycle_hum_to_off = (
+        hum.to(off)
     )
 
-    cycle_off_to_drying = (
-        off.to(drying)
+    cycle_off_to_dry = (
+        off.to(dry)
     )
 
-    cycle_off_to_humidifying = (
-        off.to(humidifying)
+    cycle_off_to_hum = (
+        off.to(hum)
     )
 
     ##
     ## on_enter_heat - Action performed when the state machine transitions
     ## into the 'heat' state
     ##
-    def on_enter_drying(self):
+    def on_enter_dry(self):
         ##
         ## Pulse the yellow indicator light upon entering 
-        ## the 'drying' state. 
+        ## the 'dry' state. 
         yellowLight.pulse()
 
         if(DEBUG):
-            print("* Changing state to drying")
+            print("* Changing state to dry")
 
     ##
     ## on_exit_heat - Action performed when the statemachine transitions
     ## out of the 'heat' state.
     ##
-    def on_exit_drying(self):
+    def on_exit_dry(self):
         ##
         ## Turn off the yellow indicator light upon exiting 
-        ## the drying state.
+        ## the dry state.
         yellowLight.off()
 
     ##
-    ## on_enter_humidifying - Action performed when the state machine transitions
-    ## into the 'humidifying' state
+    ## on_enter_hum - Action performed when the state machine transitions
+    ## into the 'hum' state
     ##
-    def on_enter_humidifying(self):
+    def on_enter_hum(self):
         ##
         ## Pulse the green indicator light upon entering 
-        ## the 'humidifying' state.
+        ## the 'hum' state.
         greenLight.pulse()
 
         if(DEBUG):
-            print("* Changing state to humidifying")
+            print("* Changing state to hum")
 
     ##
-    ## on_exit_humidifying - Action performed when the statemachine transitions
-    ## out of the 'humidifying' state.
+    ## on_exit_hum - Action performed when the statemachine transitions
+    ## out of the 'hum' state.
     ##
-    def on_exit_humidifying(self):
+    def on_exit_hum(self):
         ##
         ## Turn off the green indicator light upon exiting 
-        ## the 'humidifying' state.
+        ## the 'hum' state.
         greenLight.off()
 
     ##
@@ -769,30 +810,40 @@ class HumidityMachine(StateMachine):
         # If the setPoint is greater than the minimum set point,
         if (self.setPoint > self.minSetPoint):
             # then decrease the set point by 1
-            self.setPoint = self.setPoint - 1               
+            self.setPoint = self.setPoint - 1       
+
+#    ##
+#    ## updateDBHumidity - this method updates our database with a timestamped temperature reading
+#    ##
+#    async def updateDBHumidity(self):
+#        current_humidity = str(round(hsm.getHumidity(), 2))
+#        date_and_time = str(datetime.now().strftime('%b %d  %H:%M:%S\n'))
+#        # Create a ReductStore client object
+#        async with Client("http://192.168.8.176:8384/", api_token="humidity-token") as client:
+#            bucket = await client.create_bucket(
+#                "humidity-bucket",
+#                BucketSettings(quota_type=QuotaType.FIFO, quota_size=1_000_000_000),
+#                exist_ok=True,
+#            )    
+#            await bucket.write(current_humidity, timestamp=date_and_time)  
+#            if(DEBUG):
+#                print("-- WRITING DATA TO HUMIDITY BUCKET --")  
 
     ##
     ## updateLights - Utility method to update the LED indicators on the 
     ## Thermostat
     ##
     def updateLights(self):
-        ## Make sure we are comparing humidity levels in the correct scale
-        ############################################################
-        ########## FIXME: Remember to change the name and ##########
-        ########## logic of the getHumidity() function. ##########
-        ############################################################
+        
         hum = floor(self.getHumidity())
-        ############################################################
-        ############################################################
-        ############################################################
         yellowLight.off()
         greenLight.off()
     
         ## Verify values for debug purposes
         if(DEBUG):
             print(f"State: {self.current_state.id}")
-            print(f"SetPoint: {self.setPoint}")
-            print(f"Hum: {hum}")
+            print(f"Target Humidity: {self.setPoint}")
+            print(f"Actual Humidity: {hum}")
 
         # Determine visual identifiers
 
@@ -801,46 +852,48 @@ class HumidityMachine(StateMachine):
             # if the setPoint is greater 
             # than the current humidity,
             if (self.setPoint > hum):
-                # enter the drying state. 
-                self.on_enter_drying()
-                self.send("cycle_off_to_drying")
+                # enter the dry state. 
+                self.on_enter_dry()
+                self.send("cycle_off_to_dry")
             
             # Otherwise, if the SetPoint is less 
             # than the current humidity,
             elif (self.setPoint < hum):
-                # enter the humidifying state.
-                self.on_enter_humidifying()
-                self.send("cycle_off_to_humidifying")
+                # enter the hum state.
+                self.on_enter_hum()
+                self.send("cycle_off_to_hum")
 
         # Otherwise (if the current state is not off),
         else:
-            # if the current state is humidifying,
-            if (self.current_state.id == 'humidifying'):
+            # if the current state is hum,
+            if (self.current_state.id == 'hum'):
                 # if the setPoint is greater 
                 # than the current humidity,
                 if (self.setPoint > hum):
-                    # then transition from humidifying
-                    # state to drying state.
-                    self.on_exit_humidifying()
-                    self.on_enter_drying()
-                    self.send("cycle_humidifying_to_drying")
-            # if the current state is drying,
-            if (self.current_state.id == 'drying'):
+                    # then transition from hum
+                    # state to dry state.
+                    self.on_exit_hum()
+                    self.on_enter_dry()
+                    self.send("cycle_hum_to_dry")
+            # if the current state is dry,
+            if (self.current_state.id == 'dry'):
                 # if the setPoint is less than 
                 # the current humidity,
                 if (self.setPoint < hum):
-                    # then transition from drying
-                    # state to humidifying state.
-                    self.on_exit_drying()
-                    self.on_enter_humidifying()
-                    self.send("cycle_drying_to_humidifying")
+                    # then transition from dry
+                    # state to hum state.
+                    self.on_exit_dry()
+                    self.on_enter_hum()
+                    self.send("cycle_dry_to_hum")
 
     ##
     ## run - kickoff the display management functionality of the thermostat
     ##
     def run(self):
-        humidityDisplayThread = Thread(target=self.manageHumidityDisplay,)
+        humidityDisplayThread = Thread(target=self.processHumidityData,)
         humidityDisplayThread.start()
+#        humidityDBThread = Thread(target=asyncio.run(self.updateDBHumidity()),)
+#        humidityDBThread.start()
 
     ##
     ## Get the humidity
@@ -864,43 +917,40 @@ class HumidityMachine(StateMachine):
     endDisplay = False
 
     ##
-    ##  This function is designed to manage the LCD Display
+    ##  This function is designed to manage the LCD Display and 
+    ##  write wimestamped data to the humidity database.
     ##
-    def manageHumidityDisplay(self):
+    def processHumidityData(self):
         counter = 1
         altCounter = 1
         while not self.endDisplay:
             ## Only display if the DEBUG flag is set
             if(DEBUG):
-                print("Processing Display Info...")
+                print("Processing Humidity Display Info...")
 
-            
-
-            ## Setup Display Line 2
+            ## Setup Display
             if(altCounter < 6):
-
-                ##
-                ## Setup display line 1
-                ##
-                lcd_line_1 = ' Humidity: '
 
                 ##
                 ## Setup the second line of the LCD display to incude the 
                 ## current humidity. 
                 ##
-                lcd_line_2 = str(round(hsm.getHumidity(), 2))
+                humidity_string = " Current: " + str(round(hsm.getHumidity(), 2))
+
+                lcd_line = humidity_string
     
                 altCounter = altCounter + 1
 
             else:
                 state_string = str(self.current_state.id).capitalize()
                 set_point_string = str(self.setPoint)
-                lcd_line_1 = ' ' + state_string + ' '
+                line_string = " " + state_string + " | Set: " + set_point_string
+
                 ##
                 ## Setup the second line of the LCD display to incude the 
                 ## current state of the hygrometer and the current 
                 ## humidity setpoint. 
-                lcd_line_2 = ' Set to: ' + set_point_string
+                lcd_line = line_string
     
                 altCounter = altCounter + 1
                 if(altCounter >= 11):
@@ -910,16 +960,17 @@ class HumidityMachine(StateMachine):
                     altCounter = 1
 
             ## Update Display
-            humidity_screen.updateScreen(lcd_line_1 + lcd_line_2)
+            humidity_screen.updateHumidityScreen(lcd_line)
 
             ## Update server every 30 seconds
             if(DEBUG):
-               print(f"Counter: {counter}")
+               print(f"HumidityStateMachine Counter: {counter}")
             if((counter % 30) == 0):
                 ##
                 ## Send our current state information to the 
                 ## HumidityServer over the Serial Port (UART). 
                 ser.write(hsm.setupSerialOutput().encode())
+#                asyncio.run(self.updateDBHumidity())
 
                 counter = 1
             else:
